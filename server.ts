@@ -5,15 +5,11 @@ import { getConfig } from "@/config";
 import { gracefulShutdown } from "@/utils/shutdown";
 import { connectMongo } from "@/db";
 import { MenuModel } from "@/db/schema/menu.schema";
+import routes from "@/routes";
 
 // bootstrap phase
 const config = getConfig();
 connectMongo(config.MONGODB_URI);
-
-MenuModel.create({
-  name: "Nasi Goreng",
-  price: 10000,
-});
 
 let server: Server;
 const app = express();
@@ -24,9 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 app.disable("x-powered-by");
 
-app.get("/", (req, res) => {
-  res.json({ message: "Hello World" });
-});
+app.use("/", routes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not Found" });

@@ -19,6 +19,7 @@
   },
   "scripts": {
     "dev": "bun run --watch server.ts",
-    "build": "rm -rf dist && bun build server.ts --outdir dist --target bun --sourcemap"
+    "build": "rm -rf dist && bun build server.ts --outdir dist --target bun --sourcemap",
+    "db:seed": "bun run src/db/seeder.ts"
   }
 }

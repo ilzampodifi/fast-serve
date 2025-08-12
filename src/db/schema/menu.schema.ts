@@ -1,8 +1,9 @@
 import { InferSchemaType, model, Schema } from "mongoose";
+import { MenuItemSchema } from "./menu-item.schema";
 
 export const MenuSchema = new Schema({
-    name: { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 0 },
+    type: { type: String, required: true, trim: true },
+    items: { type: [MenuItemSchema], required: true },
 }, {
     versionKey: false,
     timestamps: true
