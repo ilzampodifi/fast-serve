@@ -11,6 +11,7 @@ export const getConfig = () => {
     APP_HOST: getEnv("APP_HOST"),
     APP_ENV: getEnv("APP_ENV"),
     MONGODB_URI: getEnv("MONGODB_URI"),
+    BCRYPT_ROUNDS: getEnv("BCRYPT_ROUNDS"),
   });
 
   if (!config.success) {

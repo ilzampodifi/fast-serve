@@ -3,8 +3,10 @@ import { InferSchemaType } from "mongoose";
 import { MenuItemSchema } from "./menu-item.schema";
 
 export const OrderItemSchema = new Schema({
+    order: { type: Schema.Types.ObjectId, ref: "Order", required: true },
     menuItem: { type: MenuItemSchema, required: true, ref: "MenuItem" },
     quantity: { type: Number, required: true, min: 1 },
+    total: { type: Number, required: true, min: 0 },
 }, {
     versionKey: false,
     timestamps: true
