@@ -130,21 +130,18 @@ export class MenuController {
 
   public getMenuItemDetail = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
-      // Use validated data helper function
-      const { params } = getValidatedData(req);
-      const { menuId, itemId } = params;
+      const { menuId, itemId } = getValidatedData(req).params;
 
-      const menu = await MenuModel.findById(menuId);
-      if (!menu) {
-        throw new AppError("Menu not found", 404, "MENU_NOT_FOUND");
-      }
+      const item = await MenuItemModel.findOne({
+        $expr: {
+          $and: [{ $eq: ["$menuId", menuId] }, { $eq: ["$_id", itemId] }],
+        },
+      });
 
-      throw new AppError(
-        "Menu item detail endpoint not yet implemented",
-        501,
-        "NOT_IMPLEMENTED",
-        { menuId, itemId }
-      );
+      res.status(200).json({
+        success: true,
+        data: item,
+      });
     }
   );
 }
