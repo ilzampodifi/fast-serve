@@ -223,6 +223,83 @@ const sampleMenuData = [
       },
     ],
   },
+  {
+    type: "Late Night Specials",
+    items: [
+      {
+        name: "Midnight Burger",
+        description:
+          "Double beef patty with bacon, cheese, and our special midnight sauce",
+        price: 18.99,
+        image:
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Night Owl Wings",
+        description:
+          "Extra spicy chicken wings perfect for late night cravings",
+        price: 14.99,
+        image:
+          "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=400&h=300&fit=crop",
+      },
+      {
+        name: "3AM Ramen",
+        description: "Rich tonkotsu ramen with soft-boiled egg and chashu pork",
+        price: 16.99,
+        image:
+          "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Insomnia Pizza",
+        description:
+          "Loaded pizza with pepperoni, sausage, mushrooms, and extra cheese",
+        price: 21.99,
+        image:
+          "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Energy Drink Float",
+        description: "Vanilla ice cream float with your choice of energy drink",
+        price: 6.99,
+        image:
+          "https://images.unsplash.com/photo-1541544181051-e46607bc22b4?w=400&h=300&fit=crop",
+      },
+    ],
+  },
+  {
+    type: "Early Morning",
+    items: [
+      {
+        name: "Sunrise Pancakes",
+        description: "Fluffy pancakes with fresh berries and maple syrup",
+        price: 9.99,
+        image:
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Morning Glory Omelette",
+        description:
+          "Three-egg omelette with spinach, tomatoes, and feta cheese",
+        price: 11.99,
+        image:
+          "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Dawn Patrol Coffee",
+        description: "Extra strong dark roast coffee with a shot of espresso",
+        price: 4.99,
+        image:
+          "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Early Bird Sandwich",
+        description: "Bacon, egg, and cheese on toasted sourdough",
+        price: 8.99,
+        image:
+          "https://images.unsplash.com/photo-1481070555726-e2fe8357725c?w=400&h=300&fit=crop",
+      },
+    ],
+  },
 ];
 
 async function clearDatabase() {
@@ -239,39 +316,154 @@ async function clearDatabase() {
 async function seedMenusAndItems() {
   console.log("🌱 Seeding menus and menu items...");
 
-  const createdMenus = [];
+  // Define time-windowed menus per schema with edge cases
+  const menusDefinition = [
+    {
+      name: "Early Breakfast Menu",
+      type: "breakfast",
+      startTime: "05:00",
+      endTime: "10:00",
+    },
+    {
+      name: "Extended Breakfast Menu",
+      type: "breakfast",
+      startTime: "06:00",
+      endTime: "12:00", // Overlaps with lunch
+    },
+    {
+      name: "Lunch Menu",
+      type: "lunch",
+      startTime: "11:00",
+      endTime: "15:00", // Overlaps with extended breakfast
+    },
+    {
+      name: "Extended Lunch Menu",
+      type: "lunch",
+      startTime: "11:30",
+      endTime: "16:00", // Overlaps with regular lunch and afternoon snack
+    },
+    {
+      name: "Afternoon Snack Menu",
+      type: "snack",
+      startTime: "15:00",
+      endTime: "17:30",
+    },
+    {
+      name: "Early Dinner Menu",
+      type: "dinner",
+      startTime: "16:30", // Overlaps with afternoon snack
+      endTime: "21:00",
+    },
+    {
+      name: "Regular Dinner Menu",
+      type: "dinner",
+      startTime: "17:00",
+      endTime: "22:00",
+    },
+    {
+      name: "Late Night Menu",
+      type: "snack",
+      startTime: "22:00",
+      endTime: "06:00", // Cross-midnight scenario
+    },
+    {
+      name: "24-Hour Menu",
+      type: "dinner",
+      startTime: "23:00",
+      endTime: "07:00", // Cross-midnight scenario
+    },
+    {
+      name: "Night Owl Special",
+      type: "snack",
+      startTime: "23:30",
+      endTime: "05:30", // Cross-midnight scenario with overlap
+    },
+  ] as const;
 
-  for (const menuData of sampleMenuData) {
-    // Create the menu first (without items in embedded schema)
+  // Organize items by type for better menu assignment
+  const itemsByType = {
+    breakfast:
+      sampleMenuData.find((g) => g.type === "Early Morning")?.items || [],
+    lunch: sampleMenuData
+      .filter((g) => ["Main Courses", "Pasta", "Pizza"].includes(g.type))
+      .flatMap((g) => g.items),
+    dinner: sampleMenuData
+      .filter((g) => ["Main Courses", "Pasta", "Pizza"].includes(g.type))
+      .flatMap((g) => g.items),
+    snack: sampleMenuData
+      .filter((g) =>
+        ["Appetizers", "Desserts", "Beverages", "Late Night Specials"].includes(
+          g.type
+        )
+      )
+      .flatMap((g) => g.items),
+  };
+
+  // Fallback to all items if specific type not found
+  const allItems = sampleMenuData.flatMap((g) => g.items);
+
+  const createdMenus: any[] = [];
+
+  for (const def of menusDefinition) {
     const menu = new MenuModel({
-      type: menuData.type,
-      items: [], // Empty for now, we'll update after creating menu items
+      name: def.name,
+      type: def.type,
+      startTime: def.startTime,
+      endTime: def.endTime,
     });
 
     const savedMenu = await menu.save();
     createdMenus.push(savedMenu);
 
-    // Create individual menu items with reference to the menu
-    const menuItems = [];
-    for (const itemData of menuData.items) {
+    // Get appropriate items based on menu type and time
+    let availableItems = itemsByType[def.type] || allItems;
+
+    // For cross-midnight menus, prioritize late night items
+    const isCrossMidnight = def.startTime > def.endTime;
+    if (isCrossMidnight) {
+      const lateNightItems =
+        sampleMenuData.find((g) => g.type === "Late Night Specials")?.items ||
+        [];
+      availableItems = [...lateNightItems, ...availableItems];
+    }
+
+    // For early morning menus, prioritize breakfast items
+    const isEarlyMorning = def.startTime <= "07:00";
+    if (isEarlyMorning) {
+      const earlyMorningItems =
+        sampleMenuData.find((g) => g.type === "Early Morning")?.items || [];
+      availableItems = [...earlyMorningItems, ...availableItems];
+    }
+
+    // Create 5-10 items per menu from the appropriate pool
+    const numItemsForMenu = Math.floor(Math.random() * 6) + 5; // 5-10
+    const chosenIndices = new Set<number>();
+    while (
+      chosenIndices.size < numItemsForMenu &&
+      chosenIndices.size < availableItems.length
+    ) {
+      chosenIndices.add(Math.floor(Math.random() * availableItems.length));
+    }
+
+    let count = 0;
+    for (const idx of chosenIndices) {
+      const itemData = availableItems[idx];
       const menuItem = new MenuItemModel({
-        menu: savedMenu._id,
+        menuId: savedMenu._id,
         name: itemData.name,
         description: itemData.description,
         price: itemData.price,
         image: itemData.image,
       });
-
-      const savedMenuItem = await menuItem.save();
-      menuItems.push(savedMenuItem);
+      await menuItem.save();
+      count += 1;
     }
 
-    // Update the menu with the embedded items
-    savedMenu.items.push(...menuItems);
-    await savedMenu.save();
-
+    const timeRange = isCrossMidnight
+      ? `${def.startTime}-${def.endTime} (cross-midnight)`
+      : `${def.startTime}-${def.endTime}`;
     console.log(
-      `   ✅ Created menu: ${menuData.type} with ${menuItems.length} items`
+      `   ✅ Created menu: ${def.name} (${def.type}) [${timeRange}] with ${count} items`
     );
   }
 
@@ -289,11 +481,12 @@ async function createSampleOrders() {
     return;
   }
 
-  // Create 15-20 sample orders for pagination testing
+  // Create 10-20 sample orders for pagination testing
   const orderStatuses = ["pending", "paid", "cancelled"];
   const orders = [];
 
-  for (let i = 1; i <= 18; i++) {
+  const orderCount = Math.floor(Math.random() * 11) + 10; // 10-20
+  for (let i = 1; i <= orderCount; i++) {
     // Random number of items per order (1-4 items)
     const numItems = Math.floor(Math.random() * 4) + 1;
     const selectedItems = [];
@@ -330,7 +523,7 @@ async function createSampleOrders() {
         order: savedOrder._id,
         menuItem: {
           _id: itemData.menuItem._id,
-          menu: itemData.menuItem.menu,
+          menuId: itemData.menuItem.menuId,
           name: itemData.menuItem.name,
           description: itemData.menuItem.description,
           price: itemData.menuItem.price,

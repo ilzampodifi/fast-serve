@@ -1,7 +1,7 @@
 import { InferSchemaType, model, Schema } from "mongoose";
 
 export const MenuItemSchema = new Schema({
-    menu: { type: Schema.Types.ObjectId, ref: "Menu", required: true },
+    menuId: { type: Schema.Types.ObjectId, ref: "Menu", required: true },
     name: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },

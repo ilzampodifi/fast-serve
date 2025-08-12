@@ -4,7 +4,7 @@ import { Server } from "http";
 import { getConfig } from "@/config";
 import { gracefulShutdown } from "@/utils/shutdown";
 import { connectMongo } from "@/db";
-import { MenuModel } from "@/db/schema/menu.schema";
+import { errorHandler, notFoundHandler } from "@/utils/errors";
 import routes from "@/routes";
 
 // bootstrap phase
@@ -22,9 +22,9 @@ app.disable("x-powered-by");
 
 app.use("/", routes);
 
-app.use((req, res) => {
-  res.status(404).json({ message: "Not Found" });
-});
+// Error handling middleware (must be last)
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 server = app.listen(port, () => {
   const lines = [
