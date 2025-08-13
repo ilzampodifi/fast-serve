@@ -1,5 +1,5 @@
 import { MenuController } from "@/app/controller/menu.controller";
-import { validate } from "@/middleware/validation.middleware";
+import { validate } from "@/app/middleware/validation.middleware";
 import {
   getActiveMenuValidation,
   getMenuByIdValidation,

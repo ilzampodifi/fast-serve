@@ -1,7 +1,10 @@
 import { Menu, MenuModel } from "@/db/schema/menu.schema";
 import { type Request, type Response } from "express";
 import { asyncHandler } from "@/utils/errors";
-import { AppError, getValidatedData } from "@/middleware/validation.middleware";
+import {
+  AppError,
+  getValidatedData,
+} from "@/app/middleware/validation.middleware";
 import { toMinutes } from "@/utils/schema";
 import { Paginated } from "@/types/paginated";
 import { MenuItem, MenuItemModel } from "@/db/schema/menu-item.schema";

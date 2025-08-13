@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "@/middleware/validation.middleware";
+import { AppError } from "@/app/middleware/validation.middleware";
 
 /**
  * Production-grade error response interface
@@ -48,7 +48,12 @@ export const errorHandler = (
         err.message
       );
     } else {
-      error = new AppError("Internal Server Error", 500, "INTERNAL_ERROR", err.message);
+      error = new AppError(
+        "Internal Server Error",
+        500,
+        "INTERNAL_ERROR",
+        err.message
+      );
     }
   }
 
