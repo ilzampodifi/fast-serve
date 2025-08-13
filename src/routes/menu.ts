@@ -10,15 +10,12 @@ import { Router } from "express";
 const router = Router();
 const controller = new MenuController();
 
-// Apply validation middleware to routes
 router.get("/", validate(getActiveMenuValidation), controller.getActiveMenu);
-
 router.get(
   "/:menuId",
   validate(getMenuByIdValidation),
   controller.getMenuByMenuId
 );
-
 router.get(
   "/:menuId/:itemId",
   validate(getMenuItemDetailValidation),
