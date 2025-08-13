@@ -6,13 +6,12 @@ import {
   getValidatedData,
 } from "@/app/middleware/validation.middleware";
 import { toMinutes } from "@/utils/schema";
-import { Paginated } from "@/types/paginated";
-import { MenuItem, MenuItemModel } from "@/db/schema/menu-item.schema";
+import { MenuItemModel } from "@/db/schema/menu-item.schema";
 
 export class MenuController {
   public getActiveMenu = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
-      const { time, page, limit, sort } = getValidatedData(req).query;
+      const { time } = getValidatedData(req).query;
 
       let query = {};
 
@@ -79,25 +78,11 @@ export class MenuController {
 
       // Find all menus that are active at the requested time
       // This handles overlapping periods by returning all matching menus
-      const [menus, totalCount] = await Promise.all([
-        MenuModel.find(query)
-          .skip((page - 1) * limit)
-          .limit(limit)
-          .sort(sort || { type: 1, startTime: 1 }), // Default sort by type then start time
-        MenuModel.countDocuments(query),
-      ]);
-
-      let result: Paginated<Menu> = {
-        data: menus,
-        page,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-      };
+      const menus = await MenuModel.find(query);
 
       res.status(200).json({
         success: true,
-        ...result,
+        data: menus,
       });
     }
   );
@@ -105,28 +90,16 @@ export class MenuController {
   public getMenuByMenuId = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { menuId } = getValidatedData(req).params;
-      const { page, limit, sort } = getValidatedData(req).query;
 
       const items = await MenuItemModel.find({
         $expr: {
           $eq: ["$menuId", menuId],
         },
-      })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort(sort || { name: 1 });
-
-      let result: Paginated<MenuItem> = {
-        data: items,
-        page,
-        limit,
-        total: items.length,
-        totalPages: Math.ceil(items.length / limit),
-      };
+      });
 
       res.status(200).json({
         success: true,
-        ...result,
+        data: items,
       });
     }
   );
