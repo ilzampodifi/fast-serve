@@ -1,24 +1,21 @@
 import { Router } from "express";
+import OrderController from "../app/controller/order.controller";
 
 const router = Router();
 
-// get all orders
-router.get("/", (req, res) => {
-  res.send("Hello World");
-});
+// Sync order item (add or update)
+router.post("/sync-item", OrderController.syncOrderItem);
 
-// get all menu
-router.get("/:id", (req, res) => {
-  res.send("Hello World");
-});
+// Get order by unique_id
+router.get("/:unique_id", OrderController.getOrder);
 
-router.post("/", (req, res) => {
-  res.send("Hello World");
-});
+// Delete order item
+router.delete(
+  "/:unique_id/item/:menu_item_id",
+  OrderController.deleteOrderItem
+);
 
-router.put("/:id", (req, res) => {
-  res.send("Hello World");
-});
-
+// Confirm order (delete from memory)
+router.post("/:unique_id/confirm", OrderController.confirmOrder);
 
 export default router;

@@ -2,8 +2,6 @@ import { connectMongo } from "./index";
 import { getConfig } from "../config";
 import { MenuModel } from "./schema/menu.schema";
 import { MenuItemModel } from "./schema/menu-item.schema";
-import { OrderModel } from "./schema/order.schema";
-import { OrderItemModel } from "./schema/order-item.schema";
 
 const sampleMenuData = [
   {
@@ -304,12 +302,7 @@ const sampleMenuData = [
 
 async function clearDatabase() {
   console.log("🗑️  Clearing existing data...");
-  await Promise.all([
-    OrderItemModel.deleteMany({}),
-    OrderModel.deleteMany({}),
-    MenuItemModel.deleteMany({}),
-    MenuModel.deleteMany({}),
-  ]);
+  await Promise.all([MenuItemModel.deleteMany({}), MenuModel.deleteMany({})]);
   console.log("✅ Database cleared");
 }
 
@@ -470,90 +463,6 @@ async function seedMenusAndItems() {
   return createdMenus;
 }
 
-async function createSampleOrders() {
-  console.log("🛒 Creating sample orders...");
-
-  // Get all menu items for creating orders
-  const allMenuItems = await MenuItemModel.find();
-
-  if (allMenuItems.length === 0) {
-    console.log("❌ No menu items found to create orders");
-    return;
-  }
-
-  // Create 10-20 sample orders for pagination testing
-  const orderStatuses = ["pending", "paid", "cancelled"];
-  const orders = [];
-
-  const orderCount = Math.floor(Math.random() * 11) + 10; // 10-20
-  for (let i = 1; i <= orderCount; i++) {
-    // Random number of items per order (1-4 items)
-    const numItems = Math.floor(Math.random() * 4) + 1;
-    const selectedItems = [];
-
-    // Select random menu items
-    for (let j = 0; j < numItems; j++) {
-      const randomIndex = Math.floor(Math.random() * allMenuItems.length);
-      const menuItem = allMenuItems[randomIndex];
-      const quantity = Math.floor(Math.random() * 3) + 1; // 1-3 quantity
-
-      selectedItems.push({
-        menuItem,
-        quantity,
-        total: menuItem.price * quantity,
-      });
-    }
-
-    // Calculate final total
-    const finalTotal = selectedItems.reduce((sum, item) => sum + item.total, 0);
-
-    // Create the order
-    const order = new OrderModel({
-      finalTotal,
-      status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-      items: [], // Will be updated after creating order items
-    });
-
-    const savedOrder = await order.save();
-
-    // Create order items with reference to the order
-    const orderItems = [];
-    for (const itemData of selectedItems) {
-      const orderItem = new OrderItemModel({
-        order: savedOrder._id,
-        menuItem: {
-          _id: itemData.menuItem._id,
-          menuId: itemData.menuItem.menuId,
-          name: itemData.menuItem.name,
-          description: itemData.menuItem.description,
-          price: itemData.menuItem.price,
-          image: itemData.menuItem.image,
-          createdAt: itemData.menuItem.createdAt,
-          updatedAt: itemData.menuItem.updatedAt,
-        },
-        quantity: itemData.quantity,
-        total: itemData.total,
-      });
-
-      const savedOrderItem = await orderItem.save();
-      orderItems.push(savedOrderItem);
-    }
-
-    // Update the order with embedded order items
-    savedOrder.items.push(...orderItems);
-    await savedOrder.save();
-    orders.push(savedOrder);
-
-    console.log(
-      `   ✅ Order #${i}: ${orderItems.length} items, Status: ${
-        savedOrder.status
-      }, Total: $${finalTotal.toFixed(2)}`
-    );
-  }
-
-  return orders;
-}
-
 async function seed() {
   try {
     console.log("🚀 Starting database seeding...");
@@ -567,31 +476,20 @@ async function seed() {
 
     // Seed new data
     const menus = await seedMenusAndItems();
-    const orders = await createSampleOrders();
 
     console.log("🎉 Database seeding completed successfully!");
 
     // Show summary
     const menuCount = await MenuModel.countDocuments();
     const menuItemCount = await MenuItemModel.countDocuments();
-    const orderCount = await OrderModel.countDocuments();
-    const orderItemCount = await OrderItemModel.countDocuments();
 
     console.log("\n📊 Seeding Summary:");
     console.log(`   • Menus: ${menuCount}`);
     console.log(`   • Menu Items: ${menuItemCount}`);
-    console.log(`   • Orders: ${orderCount}`);
-    console.log(`   • Order Items: ${orderItemCount}`);
 
     console.log("\n🔗 Relationship Summary:");
     console.log(`   • Each Menu has multiple MenuItems (1:N)`);
-    console.log(`   • Each Order has multiple OrderItems (1:N)`);
     console.log(`   • MenuItems reference their parent Menu`);
-    console.log(`   • OrderItems reference their parent Order`);
-
-    console.log("\n📄 Pagination Testing:");
-    console.log(`   • Created ${orderCount} orders for pagination testing`);
-    console.log(`   • Recommended page size: 5-10 items per page`);
   } catch (error) {
     console.error("❌ Seeding failed:", error);
     process.exit(1);
